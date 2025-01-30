@@ -3,13 +3,11 @@ class BankAccount {
     private int accountNumber;
     private String name;
     private double balance;
-    private int atmPin;
 
-    public BankAccount(int accountNumber, String name, double balance, int atmPin) {
-        this.accountNumber = accountNumber;
-        this.name = name;
-        this.balance = balance;
-        this.atmPin = atmPin;
+    public BankAccount(int accountNumber, String name, double balance) {
+        setAccountNumber(accountNumber);
+        setName(name);
+        setBalance(balance);
     }
     //Method to deposit money
     public void deposit(double amount) {
@@ -38,7 +36,17 @@ class BankAccount {
         return accountNumber;
     }
 
-    public int getAtmPin() {
-        return atmPin;
+    //Setters
+    public void setAccountNumber(int accountNumber)
+    {
+        this.accountNumber=accountNumber;
+    }
+    public void setName(String name)
+    {
+        this.name=name;
+    }
+    public void setBalance(double balance)
+    {
+        this.balance=balance;
     }
 }
