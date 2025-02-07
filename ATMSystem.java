@@ -1,8 +1,47 @@
 
 import java.util.*;
-//This Class Implement ATMSystem
-public class ATMSystem {
 
+public class ATMSystem {
+    //method to get int value only
+    private static int getInt(Scanner scanner) {
+        while (true) {
+            try {
+                return scanner.nextInt();
+            } catch (InputMismatchException e) {
+                System.out.println("Error: Please enter a valid integer:");
+                scanner.next();
+            }
+        }
+    }
+    //method to get double value only
+    private static double getDouble(Scanner scanner) {
+        while (true) {
+            try {
+                return scanner.nextDouble();
+            } catch (InputMismatchException e) {
+                System.out.println("Error: Please enter a valid  amount:");
+                scanner.next();
+            }
+        }
+    }
+    //method to get valid name 
+    private static String getName(Scanner scanner) {
+        while (true) {
+            String name = scanner.nextLine().trim();
+            try {
+                if (name.isEmpty()) {
+                    throw new InvalidNameException("Name cannot be empty. Please enter a valid name.");
+                }
+                if (!name.matches("[a-zA-Z ]+")) {
+                    throw new InvalidNameException("Name cannot contain numbers or special characters. Please enter a valid name.");
+                }
+                return name;
+            } catch (InvalidNameException e) {
+                System.out.println("Error: " + e.getMessage()); 
+            }
+        }
+    }
+    
     public static void main(String[] args) {
         //Declare scanner object to getting input
         Scanner scanner = new Scanner(System.in);
@@ -11,9 +50,10 @@ public class ATMSystem {
         ArrayList<BankAccount> accounts = new ArrayList<>();
         //Storing Users Choice
         int choice;
+
         do {
             System.out.println("\nEnter Your Choice: \n 1. Create New Account \n 2. Old Account \n 0. Exit");
-            choice = scanner.nextInt();
+            choice = getInt(scanner);
             scanner.nextLine();
             switch (choice) {
                 //If Users choice is 0 Exit from Atm
@@ -23,32 +63,48 @@ public class ATMSystem {
                 //To Create new Account
                 case 1:
                     System.out.print("Enter Your Name: ");
-                    String name = scanner.nextLine();
-                    System.out.print("Enter Your Initial Deposit Amount: ");
-                    double initialDeposit = scanner.nextDouble();
+                    String name = getName(scanner);
                     int atmPin;
                     //validating atm pin atm pin must be four digit
                     while (true) {
-                        System.out.print("Choose Four-Digit ATM Pin: ");
-                        atmPin = scanner.nextInt();
-                        if (atmPin >= 1000 && atmPin <= 9999) {
-                            break; 
-                        } else {
-                            System.out.println("Invalid PIN! Please choose a four-digit PIN.");
-                        }
+                        System.out.print("Choose Four Digit ATM Pin: ");
+                        try {
+                            atmPin = getInt(scanner);
+                            if (atmPin < 1000 || atmPin > 9999) {
+                                throw new InvalidPinException("Invalid PIN! Please choose a four-digit PIN.");
+                            }
+                            break;
+                        } catch (InvalidPinException e) {
+                            System.out.println("Invalid Pin : " + e.getMessage());
+                        } 
                     }
                     //create new Account
-                    BankAccount newAccount = new BankAccount(accounts.size(), name, initialDeposit, atmPin);
-                    //Add new Account to accounts
-                    accounts.add(newAccount);
-                    System.out.println("New Account Created Successfully! Your Account Number is: " + (accounts.size() - 1));
+                    BankAccount newAccount = new BankAccount(accounts.size(), name, atmPin);
+                    double initialDeposit;
+                    while (true) {
+                        System.out.print("Enter Your Initial Deposit Amount: ");
+                        try {
+                            initialDeposit = getDouble(scanner);
+                            newAccount.deposit(initialDeposit);
+                            //Add new Account to accounts
+                            accounts.add(newAccount);
+                            System.out.println("New Account Created Successfully! Your Account Number is: " + (accounts.size() - 1));
+                            break;
+                        } catch (InvalidAmountException e) {
+                            System.out.println("Error: " + e.getMessage());
+                        } catch (InputMismatchException e) {
+                            System.out.println("Error: Please enter a valid numeric amount.");
+                            scanner.next();
+                        }
+                    }
+
                     break;
                 //If Customer has Acccount
                 case 2:
                     System.out.print("Enter Account Number: ");
-                    int accountNumber = scanner.nextInt();
+                    int accountNumber = getInt(scanner);
                     System.out.print("Enter Your ATM Pin: ");
-                    int pin = scanner.nextInt();
+                    int pin = getInt(scanner);
                     BankAccount foundAccount = null;
                     //Validate account number & atm pin
                     if (accountNumber < accounts.size() && accounts.get(accountNumber).getAtmPin() == pin) {
@@ -68,39 +124,38 @@ public class ATMSystem {
                             System.out.println("2. Withdraw");
                             System.out.println("3. Check Balance");
                             System.out.println("0. Logout");
-
-                            subChoice = scanner.nextInt();
-
-                            switch (subChoice) {
-                                case 1:
-                                    System.out.print("Enter Deposit Amount: ");
-                                    double depositAmount = scanner.nextDouble();
-                                    foundAccount.deposit(depositAmount);
-                                    break;
-                                case 2:
-                                    System.out.print("Enter Withdrawal Amount: ");
-                                    double withdrawAmount = scanner.nextDouble();
-                                    foundAccount.withdraw(withdrawAmount);
-                                    break;
-                                case 3:
-                                    foundAccount.displayBalance();
-                                    break;
-                                case 0:
-                                    System.out.println("Logged out ");
-                                    break;
-                                default:
-                                    System.out.println("Invalid choice. Please try again.");
+                            subChoice = getInt(scanner);
+                            try {
+                                switch (subChoice) {
+                                    case 1:
+                                        System.out.print("Enter Deposit Amount: ");
+                                        double depositAmount = getDouble(scanner);
+                                        foundAccount.deposit(depositAmount);
+                                        break;
+                                    case 2:
+                                        System.out.print("Enter Withdrawal Amount: ");
+                                        double withdrawAmount = getDouble(scanner);
+                                        foundAccount.withdraw(withdrawAmount);
+                                        break;
+                                    case 3:
+                                        foundAccount.displayBalance();
+                                        break;
+                                    case 0:
+                                        System.out.println("Logged out.");
+                                        break;
+                                    default:
+                                        System.out.println("Invalid choice. Please try again.");
+                                }
+                            } catch (InvalidAmountException | InsufficientBalanceException e) {
+                                System.out.println("Error: " + e.getMessage());
                             }
                         } while (subChoice != 0);
                     }
                     break;
-
                 default:
                     System.out.println("Invalid choice. Please try again.");
             }
-
         } while (choice != 0);
-
         scanner.close();
     }
 }
